@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentTalk - AI-Powered Interview System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: rgba(255, 255, 255, 0.05);
+            --surface-hover: rgba(255, 255, 255, 0.1);
+            --primary: #8b5cf6;
+            --primary-glow: rgba(139, 92, 246, 0.5);
+            --secondary: #3b82f6;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.15), transparent 25%);
+        }
+
+        /* Glassmorphism utility */
+        .glass {
+            background: var(--surface);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+        }
+
+        /* Header */
+        header {
+            padding: 24px 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            display: flex;
+            padding: 24px 48px;
+            gap: 32px;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Setup Sidebar */
+        .setup-panel {
+            flex: 0 0 320px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 14px;
+            color: var(--text-dim);
+        }
+
+        input[type="text"],
+        select,
+        .file-upload {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 12px 16px;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-glow);
+        }
+
+        .file-upload {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-style: dashed;
+            cursor: pointer;
+            text-align: center;
+            padding: 24px 16px;
+        }
+
+        .file-upload:hover {
+            border-color: var(--secondary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--primary-glow);
+        }
+
+        /* Interview Area */
+        .interview-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 32px;
+            position: relative;
+        }
+
+        .avatar-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            margin-bottom: 32px;
+        }
+
+        .ai-avatar {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e1b4b, #172554);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 0 50px rgba(139, 92, 246, 0.2);
+            transition: all 0.5s ease;
+        }
+
+        .ai-avatar::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            background: linear-gradient(135deg, var(--primary), var(--secondary)) border-box;
+            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: destination-out;
+            mask-composite: exclude;
+            opacity: 0.5;
+            animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .ai-avatar.speaking {
+            transform: scale(1.05);
+            box-shadow: 0 0 80px rgba(139, 92, 246, 0.4);
+        }
+
+        .ai-avatar.speaking::before {
+            animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            opacity: 1;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.9);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
+        }
+
+        .ai-avatar.recording {
+            border-color: #ef4444;
+            box-shadow: 0 0 50px rgba(239, 68, 68, 0.2);
+        }
+
+        .ai-avatar.recording::before {
+            background: linear-gradient(135deg, #ef4444, #f87171) border-box;
+            animation: pulse-ring 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            opacity: 1;
+            box-shadow: 0 0 80px rgba(239, 68, 68, 0.4);
+        }
+
+        .bot-icon {
+            font-size: 64px;
+        }
+
+        /* Chat / Transcript */
+        .transcript {
+            height: 300px;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .transcript::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .transcript::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 16px 20px;
+            border-radius: 16px;
+            font-size: 15px;
+            line-height: 1.5;
+            animation: fadeUp 0.4s ease forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ai-msg {
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .human-msg {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .mic-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mic-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .mic-btn.active {
+            background: #ef4444;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+            border-color: #ef4444;
+            transform: scale(1.1);
+            animation: pulse-mic 1.5s infinite;
+        }
+
+        @keyframes pulse-mic {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 20px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        .status-text {
+            text-align: center;
+            display: block;
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--text-dim);
+            height: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">TalentTalk</div>
+        <div style="color: var(--text-dim); font-size: 14px;">Beta Preview</div>
+    </header>
+
+    <main>
+        <!-- Setup Panel -->
+        <div class="setup-panel glass">
+            <h2>Interview Setup</h2>
+
+            <div class="form-group">
+                <label>Position</label>
+                <input type="text" value="AI Developer" id="position">
+            </div>
+
+            <div class="form-group">
+                <label>Company</label>
+                <input type="text" value="Tech Innovators Inc." id="company">
+            </div>
+
+            <div class="form-group">
+                <label>Interviewer Voice</label>
+                <select id="voice">
+                    <option>Female / Friendly</option>
+                    <option>Male / Professional</option>
+                    <option>Male / Authoritative</option>
+                </select>
+            </div>
+
+            <br>
+            <h2>Upload Resume</h2>
+            <div class="form-group">
+                <div class="file-upload" id="upload-box" onclick="document.getElementById('file-input').click()">
+                    <span>📄 Click to Upload PDF</span>
+                </div>
+                <input type="file" id="file-input" style="display: none" accept=".pdf">
+            </div>
+
+            <button class="btn" style="margin-top: auto;" onclick="startInterview()">Start Interview</button>
+        </div>
+
+        <!-- Interview Panel -->
+        <div class="interview-panel glass">
+
+            <div class="avatar-container">
+                <div class="ai-avatar" id="avatar">
+                    <span class="bot-icon">🤖</span>
+                </div>
+            </div>
+
+            <div class="transcript" id="transcript">
+                <div class="message ai-msg">
+                    Welcome to TalentTalk. I will be your AI interviewer today. Please configure the interview settings
+                    on the left, upload your resume, and click "Start Interview" when you are ready.
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="mic-btn" id="mic-btn" onclick="toggleRecording()" disabled>
+                    🎤
+                </button>
+            </div>
+            <span class="status-text" id="status-text">Waiting to start...</span>
+
+        </div>
+    </main>
+
+    <script>
+        const avatar = document.getElementById('avatar');
+        const transcript = document.getElementById('transcript');
+        const micBtn = document.getElementById('mic-btn');
+        const statusText = document.getElementById('status-text');
+        const uploadBox = document.getElementById('upload-box');
+
+        let isRecording = false;
+        let interviewStarted = false;
+        let recognition;
+
+        // Initialize Speech Recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function () {
+                isRecording = true;
+                micBtn.classList.add('active');
+                avatar.classList.add('recording');
+                statusText.textContent = "Listening... (Speak now)";
+            };
+
+            recognition.onresult = function (event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+
+                statusText.textContent = "Listening: " + (finalTranscript || interimTranscript) + "...";
+            };
+
+            recognition.onerror = function (event) {
+                console.error("Speech recognition error", event.error);
+                stopRecording();
+                statusText.textContent = "Error: " + event.error;
+            };
+
+            recognition.onend = function () {
+                if (isRecording) {
+                    // Try to restart if it ended unexpectedly while we wanted to record
+                    // but for simplicity, let's just stop it
+                    stopRecording();
+                }
+            };
+        } else {
+            console.warn("Speech Recognition API not supported in this browser.");
+        }
+
+        document.getElementById('file-input').addEventListener('change', function (e) {
+            if (e.target.files.length > 0) {
+                uploadBox.innerHTML = `<span>✅ ${e.target.files[0].name}</span>`;
+                uploadBox.style.borderColor = 'var(--primary)';
+                uploadBox.style.background = 'rgba(139, 92, 246, 0.1)';
+            }
+        });
+
+        function addMessage(text, sender) {
+            const msg = document.createElement('div');
+            msg.className = `message ${sender}-msg`;
+            msg.textContent = text;
+            transcript.appendChild(msg);
+            transcript.scrollTop = transcript.scrollHeight;
+        }
+
+        function speakText(text, callback) {
+            avatar.classList.add('speaking');
+            statusText.textContent = "AI is speaking...";
+            addMessage(text, 'ai');
+
+            if ('speechSynthesis' in window) {
+                // Cancel any ongoing speech
+                window.speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(text);
+
+                // Try to customize voice based on dropdown
+                const voiceSelect = document.getElementById('voice');
+                const selectedVoiceStr = voiceSelect ? voiceSelect.value : "";
+
+                const voices = window.speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    let chosenVoice = null;
+                    if (selectedVoiceStr.includes("Female")) {
+                        chosenVoice = voices.find(v => v.name.includes("Female") || v.name.includes("Samantha") || v.name.includes("Zira"));
+                    } else {
+                        chosenVoice = voices.find(v => v.name.includes("Male") || v.name.includes("David") || v.name.includes("Mark"));
+                    }
+                    if (chosenVoice) utterance.voice = chosenVoice;
+                }
+
+                utterance.onend = () => {
+                    avatar.classList.remove('speaking');
+                    statusText.textContent = "Waiting for your response...";
+                    if (callback) callback();
+                };
+
+                window.speechSynthesis.speak(utterance);
+            } else {
+                // Fallback simulation
+                setTimeout(() => {
+                    avatar.classList.remove('speaking');
+                    statusText.textContent = "Waiting for your response...";
+                    if (callback) callback();
+                }, text.length * 50); // Rough estimate
+            }
+        }
+
+        // Ensure voices are loaded
+        if ('speechSynthesis' in window && window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = window.speechSynthesis.getVoices;
+        }
+
+        function startInterview() {
+            if (interviewStarted) return;
+            interviewStarted = true;
+
+            const position = document.getElementById('position').value;
+            const company = document.getElementById('company').value;
+
+            transcript.innerHTML = ''; // Clear chat
+            micBtn.disabled = false;
+
+            statusText.textContent = "Connecting to AI Interviewer...";
+
+            setTimeout(() => {
+                speakText(`Hello! I'm your AI interviewer for the ${position} position at ${company}. I've reviewed your resume. Are you ready to begin?`);
+            }, 1000);
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            micBtn.classList.remove('active');
+            avatar.classList.remove('recording');
+
+            if (recognition) {
+                recognition.stop();
+            }
+        }
+
+        function toggleRecording() {
+            if (!interviewStarted) return;
+
+            // Don't allow recording while AI is speaking
+            if (window.speechSynthesis && window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+                avatar.classList.remove('speaking');
+            }
+
+            if (!isRecording) {
+                if (!recognition) {
+                    alert("Speech recognition is not supported in this browser. Try Chrome or Edge.");
+                    return;
+                }
+
+                // Add a temporary message for the user's speech
+                const userMsgDiv = document.createElement('div');
+                userMsgDiv.className = `message human-msg`;
+                userMsgDiv.id = 'current-user-msg';
+                userMsgDiv.textContent = '...';
+                transcript.appendChild(userMsgDiv);
+                transcript.scrollTop = transcript.scrollHeight;
+
+                // Setup custom result handler for this session
+                recognition.onresult = function (event) {
+                    let interimTranscript = '';
+                    let finalTranscript = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                        }
+                    }
+
+                    const displayMsg = finalTranscript || interimTranscript;
+                    userMsgDiv.textContent = displayMsg;
+                    statusText.textContent = "Listening: " + displayMsg.substring(displayMsg.length > 30 ? displayMsg.length - 30 : 0) + "...";
+                    transcript.scrollTop = transcript.scrollHeight;
+                };
+
+                recognition.onend = function () {
+                    const finalMsg = userMsgDiv.textContent;
+                    userMsgDiv.removeAttribute('id'); // Remove ID so we don't update it again
+
+                    if (isRecording) {
+                        stopRecording();
+
+                        if (finalMsg && finalMsg !== '...') {
+                            statusText.textContent = "AI is evaluating your response...";
+                            // Simulate AI evaluating and picking next question
+                            setTimeout(() => {
+                                const nextQuestions = [
+                                    "Great. Let's start with a technical question based on your recent projects. Can you explain the architecture of the AI system you built?",
+                                    "Interesting. Could you elaborate on how you handled data preprocessing for that?",
+                                    "I see. Tell me about a time you had to optimize model inference speed.",
+                                    "That makes sense. Can you explain your familiarity with Docker and cloud deployments?"
+                                ];
+                                const randomQ = nextQuestions[Math.floor(Math.random() * nextQuestions.length)];
+                                speakText(randomQ);
+                            }, 1000);
+                        } else {
+                            userMsgDiv.remove(); // empty message
+                            statusText.textContent = "Waiting for your response...";
+                        }
+                    }
+                };
+
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.error(e);
+                    stopRecording();
+                }
+            } else {
+                // User manually stopped recording
+                stopRecording();
+            }
+        }
+    </script>
+</body>
+
+</html>
